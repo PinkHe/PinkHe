@@ -1,5 +1,7 @@
 import sys,os
+from urllib import request
 
+import requests
 from robot.api.deco import keyword
 
 from Lib.SYSPublic import SYSPublic, read_file_to_json, read_rfdata, replace_data
@@ -18,6 +20,9 @@ class zhuce():
     def zhuceluru(self, rf_data,host_name=''):
         rf_data = read_rfdata(os.path.dirname(__file__)+"\\data",rf_data)
         req_data = replace_data(os.path.dirname(__file__)+"\\"+self.__class__.__name__+"_data",sys._getframe().f_code.co_name,rf_data)
+
+        requests.session().request("post","",data=req_data)
+
         print(req_data)
 
     @keyword("注册返回")

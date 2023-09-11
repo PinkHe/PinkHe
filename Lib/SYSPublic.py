@@ -86,6 +86,13 @@ def read_file_to_json(path, encoding='utf-8'):
 
 
 def read_rfdata(path, rf_data, file_type='.json'):
+    """
+
+    :param path: rf_data扫描路径，指定为当前执行类同级目录
+    :param rf_data: 目标文件名称
+    :param file_type: 文件后缀类型
+    :return: 文件json格式内容
+    """
     data_path = ''
     for root, dirs, files in os.walk(path, topdown=False):
         for fi in files:
@@ -95,13 +102,83 @@ def read_rfdata(path, rf_data, file_type='.json'):
     if data_path is not None:
         return read_file_to_json(data_path)
 def replace_data(path,fun_name,rf_data):
+    """
+
+
+    :param path: 数据文件扫描路径，指定为当前执行类同级目录
+    :param fun_name: 当前执行函数名称
+    :param rf_data: 替换文件内容
+    :return: req_data,rf_data和req_data合并后的内容
+    """
     req_data = read_file_to_json(path+"\\"+fun_name+".json")
+
+    req_data = replace_data_it(req_data,rf_data)
+
     print(req_data)
-    print(rf_data)
+    # print(rf_data)  dict list tuple
 
     return fun_name
 
+def replace_data_it(dict_a,dict_b):
+    """
+    以基础参数为模板，以b中的键在a中存在的，且值的类型相同的则替换对于的值
+    dict_a ={"aa":"aa","cc":"cc"} dict_b ={"aa":"bb","dd":"dd"} => result_dict ={"aa":"bb","cc":"cc"}
 
+    dict_a ={"aa":"aa","cc":{},"dd":{"ee":"ee"}} dict_b ={"aa":"aa","cc":{"zz":"zz"},"dd":{}} => result_dict ={"aa":"aa","cc":{"zz":"zz"},"dd":{}}
+
+    dict_a ={"aa":"aa","cc":[{"dd":"dd"}],"ee":[]} dict_b ={"aa":"aa","cc":[],"ee":[{"zz":"zz"}]} => result_dict ={"aa":"aa","cc":[],"ee":[{"zz":"zz"}]} 值类型为list,tuple的，直接将dict_b的值替换进dict_a
+
+    :param dict_a: 基础参数
+    :param dict_b: 可变参数
+    :return: 替换后的结果
+    """
+    dict_result = dict_a
+    if type(dict_a) == dict:
+        for item in dict_b.keys():
+            if item in dict_a.keys():
+                if type(dict_b[item]) == type(dict_a[item]):
+                    if len(dict_b[item]) == len(dict_a[item]) or len(dict_b[item]) == 0 or len(dict_a[item]) ==0:
+                        dict_a[item] = dict_b[item]
+                    else:
+                        dict_a[item] = replace_data_it(dict_a[item],dict_b[item])
+    elif type(dict_a) == list:
+        """
+            暂不处理
+        """
+        dict_result = dict_b
+    elif type(dict_a) == tuple:
+        dict_result = dict_b
+    else:
+        pass
+    return dict_result
+
+def replace_data_list(dict_a,dict_b):
+    dict_result = []
+    for item in dict_b:
+        if type(dict_a) == dict:
+            for item in dict_b.keys():
+                if item in dict_a.keys():
+                    if type(dict_b[item]) == type(dict_a[item]):
+                        if len(dict_b[item]) == len(dict_a[item]) or len(dict_b[item]) == 0 or len(dict_a[item]) == 0:
+                            dict_a[item] = dict_b[item]
+                        # elif len(dict_b[item]) == 0 or len(dict_a[item]) ==0:
+                        #     dict_a[item] = dict_b[item]
+                        else:
+                            replace_data_it(dict_a[item], dict_b[item])
+        elif type(dict_a) == list:
+            """
+                if len a>b : 以b长度为准 
+                len a=b : 以b长度为准 
+                len a<b : 以b长度为准 
+            """
+            replace_data_list(dict_a, dict_b)
+        elif type(dict_a) == tuple:
+            pass
+        else:
+            dict_a[item] = dict_b[item]
+
+
+    pass
 class SYSPublic(SYSBase):
 
     def __init__(self):
